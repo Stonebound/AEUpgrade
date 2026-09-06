@@ -1,6 +1,7 @@
 .project
 .classpath
-.gradle
+.gradle/
 .settings
-build
-run
+build/
+run/
+*.class

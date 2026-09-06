@@ -1,69 +1,63 @@
-buildscript {
-    repositories {
-        mavenCentral()
-        maven {
-            name = "forge"
-            url = "http://files.minecraftforge.net/maven"
-        }
-        maven {
-            name = "sonatype"
-            url = "https://oss.sonatype.org/content/repositories/snapshots/"
-        }
+// AEUpgrade — modernized build.
+//
+// Upstream (archived 2018): https://github.com/AppliedEnergistics/AEUpgrade
+// The original build (ForgeGradle 1.2-SNAPSHOT / Gradle 1.12 / MC 1.7.2 / AE2 rv0-stable-1,
+// drone.io CI) no longer resolves. This buildscript retargets it at MC 1.7.10 + Forge
+// 10.13.4.1614 and compiles against AE2 rv3-beta-6 using RetroFuturaGradle. The mod source
+// is unchanged from upstream commit 5c102cb apart from one rv0->rv3 API rename.
+
+plugins {
+    id "com.gtnewhorizons.retrofuturagradle" version "1.4.9"
+}
+
+group = "aeupgrade"
+version = "1.7.10-1.0.0"
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(8)
+        vendor = JvmVendorSpec.AZUL
     }
-    dependencies {
-        classpath 'net.minecraftforge.gradle:ForgeGradle:1.2-SNAPSHOT'
-    }
 }
-
-configurations.all {
-    resolutionStrategy.cacheDynamicVersionsFor 7200, 'hours'
-}
-
-// define the properties file
-ext.configFile = file "build.properties"
-
-configFile.withReader {
-    // read config.  it shall from now on be referenced as simply config or as project.config
-    def prop = new Properties()
-    prop.load(it)
-    project.ext.config = new ConfigSlurper().parse prop
-}
-
-apply plugin: 'java'
-apply plugin: 'forge'
-
-targetCompatibility = JavaVersion.VERSION_1_6
-
-version="build-$System.env.DRONE_BUILD_NUMBER"
-group = config.group
-archivesBaseName = config.archivesBaseName
 
 minecraft {
-   version = config.minecraft_version + "-" + config.forge_version
-    
-	 replace "@version@", project.version
+    mcVersion = "1.7.10"
+    // MCP stable 12 is the canonical 1.7.10 mapping set.
+    mcpMappingChannel = "stable"
+    mcpMappingVersion = "12"
+    username = "Developer"
+
+    // AEUpgrade deliberately claims modid "AppliedEnergistics" so AE1 world data binds
+    // to its stub blocks/tiles. It also hard-requires the real appliedenergistics2.
+    injectedTags.put("VERSION", version)
+}
+
+repositories {
+    maven {
+        name = "CurseMaven"
+        url = uri("https://cursemaven.com")
+        content { includeGroup "curse.maven" }
+    }
+    mavenCentral()
 }
 
 dependencies {
-	compile "appeng:appliedenergistics2:rv0-stable-1:dev"
+    // Applied Energistics 2 rv3-beta-6 — CF project 223794, file 2296430.
+    // Deobfed so we compile against MCP names.
+    implementation(rfg.deobf("curse.maven:applied-energistics-2-223794:2296430"))
 }
 
-sourceSets {
-    main {
-        java {
-            srcDir 'src/main/java/'
-        }
-        resources {
-            srcDir 'src/main/resources/'
-		  }
-	 }
-}
-
-processResources
-{
-    // replace stuff in mcmod.info, nothing else
-    from(sourceSets.main.resources.srcDirs) {
-        include 'mcmod.info'
-        expand 'version': project.version, 'mcversion': config.minecraft_version
+// Upstream shipped its lang files under assets/appliedenergistics/ (AE1's asset domain).
+// Keep that — the stub blocks/items look them up there.
+processResources {
+    inputs.property "version", project.version
+    filesMatching("mcmod.info") {
+        expand "version": project.version, "mcversion": "1.7.10"
     }
+}
+
+tasks.named("compileJava") {
+    // upstream has a few unused imports (appeng.block.AEDecorativeBlock, appeng.tile.AEBaseTile)
+    options.compilerArgs << "-Xlint:none"
+    options.encoding = "UTF-8"
 }

@@ -15,6 +15,7 @@ public class BlockQuartzPillar extends AppEngSubBlock
 
 	@Override
 	public ItemStack getNewVersion() {
-		return AEApi.instance().blocks().blockQuartzPiller.stack(1);
+		// rv0 API spelled this "blockQuartzPiller"; rv3 fixed the typo to "blockQuartzPillar".
+		return AEApi.instance().blocks().blockQuartzPillar.stack(1);
 	}
 }
