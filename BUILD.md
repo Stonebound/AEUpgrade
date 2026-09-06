@@ -12,10 +12,16 @@ tooling:
 - Compiles against **Applied Energistics 2 `rv3-beta-6`** (CurseForge project 223794, file
   2296430) pulled via CurseMaven and deobfuscated with `rfg.deobf`.
 
-Source change: exactly one line — `blockQuartzPiller` → `blockQuartzPillar` in
-`BlockQuartzPillar.java` (AE2's rv0 API had the typo; rv3 fixed it). Everything else in the
-rv0‑era API AEUpgrade uses (`appeng.api.definitions.Blocks/Items/Materials`, `AEItemDefinition`)
-still exists in rv3‑beta‑6 as `@Deprecated` compat classes.
+Source changes from upstream `5c102cb`:
+- `blockQuartzPiller` → `blockQuartzPillar` in `BlockQuartzPillar.java` (AE2's rv0 API had the
+  typo; rv3 fixed it).
+- `common/base/AppEngMultiBlock.java`: the stub blocks were `Material.iron` / hardness 1.9,
+  which mine slowly and need a pickaxe. They are throwaway migration stubs meant to be broken
+  on sight — changed to `Material.rock` / hardness 0.2 with `canHarvestBlock` → true, so they
+  break instantly by hand and always drop the AE2 gear.
+
+Everything else in the rv0‑era API AEUpgrade uses (`appeng.api.definitions.Blocks/Items/Materials`,
+`AEItemDefinition`) still exists in rv3‑beta‑6 as `@Deprecated` compat classes.
 
 ```sh
 JAVA_HOME=/path/to/jdk21 ./gradlew build

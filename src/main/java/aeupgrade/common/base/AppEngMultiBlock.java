@@ -27,13 +27,20 @@ public class AppEngMultiBlock extends BlockContainer implements IAEItemOrBlock
 	public static List<AppEngMultiBlock> multiBLocks = new ArrayList();
 
 	public AppEngMultiBlock() {
-		super( Material.iron );
+		super( Material.rock );
 		subBlocks = 0;
 		SubBlocks = new AppEngSubBlock[16];
-		setHardness( 1.9F );
-		setResistance( 5.0F );
+		// These are throwaway migration stubs meant to be broken on sight to reclaim the AE2
+		// gear -- make them instant to break, by hand, and always drop (no setHarvestLevel).
+		setHardness( 0.2F );
+		setResistance( 1.0F );
 
 		multiBLocks.add( this );
+	}
+
+	@Override
+	public boolean canHarvestBlock(net.minecraft.entity.player.EntityPlayer player, int meta) {
+		return true;
 	}
 	
 	@Override
